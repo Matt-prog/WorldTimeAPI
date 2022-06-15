@@ -26,4 +26,5 @@ Thanks to author of WorldTimeAPI for his brilliant idea.
 
 ## License
 Copyright © 2022 [Matej Fitoš](https://github.com/Matt-prog).
+
 This project is [MIT](https://github.com/Matt-prog/WorldTimeAPI/blob/main/LICENSE) licensed.
