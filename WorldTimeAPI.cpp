@@ -31,8 +31,13 @@ public:
 void WorldTimeAPIResult::clear() {
 	timezone[0] = 0;
 	abbreviation[0] = 0;
-#if (defined(ESP8266) || defined(ESP32)) && defined(ARDUINO)
+#if defined(ARDUINO)
+#ifdef ESP8266
 	client_ip.clear();
+#else
+	client_ip = IPAddress();
+#endif // ESP8266
+	
 #else
 	client_ip[0] = 0;
 #endif // defined(ESP8266) || defined(ESP32)
@@ -97,11 +102,14 @@ const WorldTimeAPIResult& WorldTimeAPI::getByIP(const char* IP) {
 #if (defined(ESP8266) || defined(ESP32)) && defined(ARDUINO)
 const WorldTimeAPIResult& WorldTimeAPI::getByIP(const IPAddress& IP) {
 	lastRes.clear();
+
+#ifdef  ESP8266
 	if (!(IP.isV4() && IP.isSet())) {
 		//Unset IP or IPV6
 		lastRes.httpCode = WorldTimeAPI_HttpCode::WTA_ERROR_ARGUMENT_ERROR;
 		return lastRes;
 	}
+#endif //  ESP8266
 
 	String url = URL_IP;
 	url += '/';
