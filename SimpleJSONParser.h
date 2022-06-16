@@ -2,7 +2,7 @@
  * @file SimpleJSONParser.h
  * @brief This file contains simple JSON parser class.
  *
- * @see SimpleJSONParser
+ * @see SimpleJSONTextParser
  *
  * # Credits
  * @author Matej Fitoš
@@ -38,7 +38,7 @@ typedef enum {
 
 
 /**
-* @class SimpleJSONParser
+* @class SimpleJSONTextParser
 * @brief This class makes parsing of JSON easier. Parsing is done using 
 * <a href="https://en.wikipedia.org/wiki/Simple_API_for_XML">SAX</a>.
 * So callback events are called during parsing. There are 3 callback
@@ -48,7 +48,7 @@ typedef enum {
 * + **onObjArrFound** - this function is called, when object begin/end or array begin/end is found.
 * All those functions has to be set before parsing.
 */
-class SimpleJSONParser {
+class SimpleJSONTextParser {
 public:
 
 	/**
@@ -151,7 +151,7 @@ public:
 		}
 
 #ifdef SJSONP_UNDER_OS
-		friend std::ostream& operator<<(std::ostream& os, const SimpleJSONParser::Number& m);
+		friend std::ostream& operator<<(std::ostream& os, const SimpleJSONTextParser::Number& m);
 #endif // !SJSONP_UNDER_OS
 
 		/**
@@ -231,10 +231,10 @@ public:
 	* To escape characters use unescape() function:
 	* @code{.cpp}
 	* //Code for PC
-	* std::string strVal = SimpleJSONParser::unescape(value, valueLength); //Creates copy of value from string of given length
+	* std::string strVal = SimpleJSONTextParser::unescape(value, valueLength); //Creates copy of value from string of given length
 	* 
 	* //Code for Arduino
-	* String strVal = SimpleJSONParser::unescape(value, valueLength); //Creates copy of value from string of given length
+	* String strVal = SimpleJSONTextParser::unescape(value, valueLength); //Creates copy of value from string of given length
 	* @endcode
 	* 
 	* All three callback function has to return true, if parsing can continue or false to stop parsing due to error.

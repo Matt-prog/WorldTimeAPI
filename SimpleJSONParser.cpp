@@ -1,33 +1,33 @@
 #include "SimpleJSONParser.h"
 
-const SimpleJSONParser::Number SimpleJSONParser::Number::Null = SimpleJSONParser::Number();
+const SimpleJSONTextParser::Number SimpleJSONTextParser::Number::Null = SimpleJSONTextParser::Number();
 
 #ifdef SJSONP_UNDER_OS
-std::ostream& operator<<(std::ostream& os, const SimpleJSONParser::Number& m)
+std::ostream& operator<<(std::ostream& os, const SimpleJSONTextParser::Number& m)
 {
 	switch (m.Type) {
-		case SimpleJSONParser::Number::NT_Null: os << "null"; break;
-		case SimpleJSONParser::Number::NT_Double: os << m.Value.Double; break;
-		case SimpleJSONParser::Number::NT_Float: os << m.Value.Float; break;
-		case SimpleJSONParser::Number::NT_Int64Ovf:
-		case SimpleJSONParser::Number::NT_Int64: os << m.Value.Int64; break;
-		case SimpleJSONParser::Number::NT_Uint64Ovf:
-		case SimpleJSONParser::Number::NT_Uint64: os << m.Value.Uint64; break;
-		case SimpleJSONParser::Number::NT_Int32: os << m.Value.Int32; break;
-		case SimpleJSONParser::Number::NT_Uint32: os << m.Value.Uint32; break;
-		case SimpleJSONParser::Number::NT_Int16: os << m.Value.Int16; break;
-		case SimpleJSONParser::Number::NT_Uint16: os << m.Value.Uint16; break;
-		case SimpleJSONParser::Number::NT_Int8: os << m.Value.Int8; break;
-		case SimpleJSONParser::Number::NT_Uint8: os << m.Value.Uint8; break;
-		case SimpleJSONParser::Number::NT_Bool: os << m.Value.Bool; break;
+		case SimpleJSONTextParser::Number::NT_Null: os << "null"; break;
+		case SimpleJSONTextParser::Number::NT_Double: os << m.Value.Double; break;
+		case SimpleJSONTextParser::Number::NT_Float: os << m.Value.Float; break;
+		case SimpleJSONTextParser::Number::NT_Int64Ovf:
+		case SimpleJSONTextParser::Number::NT_Int64: os << m.Value.Int64; break;
+		case SimpleJSONTextParser::Number::NT_Uint64Ovf:
+		case SimpleJSONTextParser::Number::NT_Uint64: os << m.Value.Uint64; break;
+		case SimpleJSONTextParser::Number::NT_Int32: os << m.Value.Int32; break;
+		case SimpleJSONTextParser::Number::NT_Uint32: os << m.Value.Uint32; break;
+		case SimpleJSONTextParser::Number::NT_Int16: os << m.Value.Int16; break;
+		case SimpleJSONTextParser::Number::NT_Uint16: os << m.Value.Uint16; break;
+		case SimpleJSONTextParser::Number::NT_Int8: os << m.Value.Int8; break;
+		case SimpleJSONTextParser::Number::NT_Uint8: os << m.Value.Uint8; break;
+		case SimpleJSONTextParser::Number::NT_Bool: os << m.Value.Bool; break;
 		default: os << "unknown"; break;
 	}
 	return os;
 }
 #endif // !SJSONP_UNDER_OS
 
-int SimpleJSONParser::Number::parse(const char* json, int jsonSize) {
-	Type = SimpleJSONParser::Number::NT_Null;
+int SimpleJSONTextParser::Number::parse(const char* json, int jsonSize) {
+	Type = SimpleJSONTextParser::Number::NT_Null;
 	if (jsonSize == 0) return 0;
 	uint64_t value = 0;
 	bool ovf = false;
@@ -154,7 +154,7 @@ int SimpleJSONParser::Number::parse(const char* json, int jsonSize) {
 				}
 			}
 		}
-		Type = SimpleJSONParser::Number::NT_Double;
+		Type = SimpleJSONTextParser::Number::NT_Double;
 		Value.Double = dvalue;
 	}
 	else {
@@ -162,31 +162,31 @@ int SimpleJSONParser::Number::parse(const char* json, int jsonSize) {
 		if (isNegative) {
 			int64_t negVal = -(int64_t)value;
 			if (ovf || negVal >= 0 || negVal < INT64_MIN) {
-				Type = SimpleJSONParser::Number::NT_Int64Ovf;
+				Type = SimpleJSONTextParser::Number::NT_Int64Ovf;
 			}
 			else if (negVal < INT32_MIN) {
-				Type = SimpleJSONParser::Number::NT_Int64;
+				Type = SimpleJSONTextParser::Number::NT_Int64;
 			}
 			else if (negVal < INT16_MIN) {
-				Type = SimpleJSONParser::Number::NT_Int32;
+				Type = SimpleJSONTextParser::Number::NT_Int32;
 			}
 			else {
-				Type = SimpleJSONParser::Number::NT_Int16;
+				Type = SimpleJSONTextParser::Number::NT_Int16;
 			}
 			Value.Int64 = negVal;
 		}
 		else {
 			if (ovf) {
-				Type = SimpleJSONParser::Number::NT_Uint64Ovf;
+				Type = SimpleJSONTextParser::Number::NT_Uint64Ovf;
 			}
 			else if (value > UINT32_MAX) {
-				Type = SimpleJSONParser::Number::NT_Uint64;
+				Type = SimpleJSONTextParser::Number::NT_Uint64;
 			}
 			else if (value > UINT16_MAX) {
-				Type = SimpleJSONParser::Number::NT_Uint32;
+				Type = SimpleJSONTextParser::Number::NT_Uint32;
 			}
 			else {
-				Type = SimpleJSONParser::Number::NT_Uint16;
+				Type = SimpleJSONTextParser::Number::NT_Uint16;
 			}
 			Value.Uint64 = value;
 		}
@@ -196,7 +196,7 @@ int SimpleJSONParser::Number::parse(const char* json, int jsonSize) {
 }
 
 
-int SimpleJSONParser::parseJSON(const char* json, int jsonSize, void* owner_ptr) {
+int SimpleJSONTextParser::parseJSON(const char* json, int jsonSize, void* owner_ptr) {
 	int i = 0;
 	for (; i < jsonSize && json[i] <= ' '; i++); //Skipping white characters
 	
@@ -251,7 +251,7 @@ int SimpleJSONParser::parseJSON(const char* json, int jsonSize, void* owner_ptr)
 }
 
 /*
-int SimpleJSONParser::parseObject(const char* json, int jsonSize, int depth, void* owner_ptr) {
+int SimpleJSONTextParser::parseObject(const char* json, int jsonSize, int depth, void* owner_ptr) {
 	uint8_t step = 0;
 	//1 - begin of key found
 	//2 - end of key found
@@ -451,7 +451,7 @@ int SimpleJSONParser::parseObject(const char* json, int jsonSize, int depth, voi
 }
 
 
-int SimpleJSONParser::parseArray(const char* json, int jsonSize, const char* key, int keyLength, int depth, void* owner_ptr) {
+int SimpleJSONTextParser::parseArray(const char* json, int jsonSize, const char* key, int keyLength, int depth, void* owner_ptr) {
 	uint8_t step = 0;
 	//1 - begin of value found
 	//2 - end of value found
@@ -636,7 +636,7 @@ int SimpleJSONParser::parseArray(const char* json, int jsonSize, const char* key
 
 */
 
-int SimpleJSONParser::parseObjArr(const char* json, int jsonSize, bool isObject, const char* key, int keyLength, int depth, void* owner_ptr) {
+int SimpleJSONTextParser::parseObjArr(const char* json, int jsonSize, bool isObject, const char* key, int keyLength, int depth, void* owner_ptr) {
 	uint8_t step;
 	//1 - begin of key found           - Not used in arrays
 	//2 - end of key found             - Not used in arrays
@@ -871,7 +871,7 @@ int SimpleJSONParser::parseObjArr(const char* json, int jsonSize, bool isObject,
 	return -i; //Parsing failed
 }
 
-void SimpleJSONParser::unescapeAndCopy(char* destStr, int destSize, const char* sourceStr, int sourceSize) {
+void SimpleJSONTextParser::unescapeAndCopy(char* destStr, int destSize, const char* sourceStr, int sourceSize) {
 	if (destSize <= 0) return;
 	destSize--;
 	bool isEscaped = false;
@@ -907,10 +907,10 @@ void SimpleJSONParser::unescapeAndCopy(char* destStr, int destSize, const char* 
 }
 
 #ifdef ARDUINO
-String SimpleJSONParser::unescape(const char* sourceStr, int sourceSize) {
+String SimpleJSONTextParser::unescape(const char* sourceStr, int sourceSize) {
 	String ret;
 #else
-std::string SimpleJSONParser::unescape(const char* sourceStr, int sourceSize) {
+std::string SimpleJSONTextParser::unescape(const char* sourceStr, int sourceSize) {
 	std::string ret;
 #endif // ARDUINO
 	ret.reserve(sourceSize);
@@ -944,13 +944,13 @@ std::string SimpleJSONParser::unescape(const char* sourceStr, int sourceSize) {
 	}
 
 #ifdef ARDUINO
-	ret.reserve(ret.length());
+	ret.reserve(ret.length() + 1); //Shring to fit by arduino
 #else
 	ret.shrink_to_fit();
 #endif // ARDUINO
 	return ret;
 }
 
-const char* SimpleJSONParser::null = "null";
-const char* SimpleJSONParser::True = "true";
-const char* SimpleJSONParser::False = "false";
+const char* SimpleJSONTextParser::null = "null";
+const char* SimpleJSONTextParser::True = "true";
+const char* SimpleJSONTextParser::False = "false";
