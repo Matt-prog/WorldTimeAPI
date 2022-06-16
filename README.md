@@ -35,7 +35,7 @@ int main()
 
 	while (true) {
 		std::cout << res.datetime.toString() << std::endl;    //Print current time obtained from WorldTimeAPI
-		//Time accuracy obtained from WorldTimeAPI is usually ±1 second.
+		//Accuracy of time obtained from WorldTimeAPI is usually ±1 second.
     
 		std::this_thread::sleep_for(std::chrono::seconds(1)); //Wait for one second
 	}
