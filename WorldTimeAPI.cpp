@@ -10,7 +10,7 @@
 
 class StringE2 : public String {
 public:
-	String::String;
+	using String::String;
 
 	StringE2(const char* cstr, unsigned int length) {
 		init();
@@ -124,6 +124,8 @@ const WorldTimeAPIResult& WorldTimeAPI::getAndParseTZ(const char* url) {
 	httpCode = requestGET(url, response);
 	lastRes.httpCode = (WorldTimeAPI_HttpCode)httpCode;
 
+	//Serial.println(response);
+
 	if (lastRes.httpCode == WorldTimeAPI_HttpCode::WTA_HTTP_CODE_OK) {
 		//GET request successfull
 		WorldTimeAPIResHelper resHelper(&lastRes);
@@ -131,8 +133,9 @@ const WorldTimeAPIResult& WorldTimeAPI::getAndParseTZ(const char* url) {
 		parser.onItemFound = jsonItemTZ;
 		parser.onTextItemFound = jsonTextTZ;
 		parser.onObjArrFound = jsonControlTZ;
-
-		int result = parser.parseJSON(response.c_str(), response.length(), &resHelper);
+//{"abbreviation":"CEST","client_ip":"185.142.49.50","datetime":"2022-06-16T13:57:27.659132+02:00","day_of_week":4,"day_of_year":167,"dst":true,"dst_from":"2022-03-27T01:00:00+00:00","dst_offset":3600,"dst_until":"2022-10-30T01:00:00+00:00","raw_offset":3600,"timezone":"Europe/Bratislava","unixtime":1655380647,"utc_datetime":"2022-06-16T11:57:27.659132+00:00","utc_offset":"+02:00","week_number":24}
+		int result = parser.parseJSON(response.c_str(), (int)response.length(), &resHelper);
+		//Serial.println(result);
 		if (!resHelper.foundFlags.allValidFound()) {
 			if (lastRes.httpCode == WorldTimeAPI_HttpCode::WTA_HTTP_CODE_OK) lastRes.httpCode = WorldTimeAPI_HttpCode::WTA_ERROR_FIELD_MISSING;
 		}
@@ -170,7 +173,7 @@ const WorldTimeAPIResult& WorldTimeAPI::getAndParseTZ(const char* url) {
 		parser.onItemFound = jsonItemERR;
 		parser.onTextItemFound = jsonTextERR;
 		parser.onObjArrFound = jsonControlTZ;
-		parser.parseJSON(response.c_str(), response.length(), &resHelper);
+		parser.parseJSON(response.c_str(), (int)response.length(), &resHelper);
 	}
 	return lastRes;
 }
@@ -324,9 +327,10 @@ bool WorldTimeAPI::jsonTextTZ(const char* key, int keyLength, const char* value,
 		}
 		res.foundFlags.client_ip_found = true;
 #if (defined(ESP8266) || defined(ESP32)) && defined(ARDUINO)
-		char client_ip[sizeof(WorldTimeAPIResult::client_ip) / sizeof(char)];
-		SimpleJSONTextParser::unescapeAndCopy(client_ip, sizeof(client_ip) / sizeof(char), value, valueLength); //Copy and unescape IP
+		char client_ip[WTAPI_TZ_CLIENT_IP_SIZE];
+		SimpleJSONTextParser::unescapeAndCopy(client_ip, WTAPI_TZ_CLIENT_IP_SIZE, value, valueLength); //Copy and unescape IP
 		//Parse IP
+		//Serial.println(client_ip);
 		if (!res.result_ptr->client_ip.fromString(client_ip)) {
 			res.result_ptr->httpCode = WorldTimeAPI_HttpCode::WTA_ERROR_WRONG_VALUE_FORMAT;
 			return false; //ERROR parsing failed
@@ -524,6 +528,7 @@ WorldTimeAPI_HttpCode WorldTimeAPI::requestGET(const char* url, String& resp) {
 	resp = "";
 	WiFiClient client;
 	HTTPClient http;
+	http.setTimeout(1000);
 
 	if (http.begin(client, url)) {
 		int httpCode = http.GET();

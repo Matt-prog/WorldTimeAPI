@@ -33,6 +33,7 @@
 
 #define WTAPI_TZ_NAME_SIZE        (45)
 #define WTAPI_TZ_ABR_NAME_SIZE    (8)
+#define WTAPI_TZ_CLIENT_IP_SIZE   (3 * 4 + 3 + 1)
 
 //WorldTimeAPI http codes
 typedef enum {
@@ -180,7 +181,7 @@ struct WorldTimeAPIResult {
 	/**
 	* @brief Client public IPv4 IP address represented by string.
 	*/
-	char client_ip[3 * 4 + 3 + 1];
+	char client_ip[WTAPI_TZ_CLIENT_IP_SIZE];
 #endif // defined(ESP8266) || defined(ESP32)
 	
 	/**
