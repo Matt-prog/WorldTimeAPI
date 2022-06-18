@@ -17,7 +17,7 @@ There are three main functions:
 Those functions are blocking, so code is stopped until response from API is received. On ESP32 and ESP8266 there is 1s timeout for receiving response.
 
 ## Dependecies
-This library uses multiplatform DateTime library for C++. It has to be included to your project/solution.
+This library uses multiplatform [DateTimeLib](https://github.com/Matt-prog/DateTimeLib) library for C++. It has to be included to your project/solution.
 
 ## Examples
 Example for Windows, Linux and Mac OS:
