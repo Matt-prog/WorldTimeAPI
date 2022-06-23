@@ -7,6 +7,7 @@ httpCode	KEYWORD2
 error	KEYWORD2
 hasError	KEYWORD2
 clear	KEYWORD2
+toTimeZoneInfo	KEYWORD2
 
 WorldTimeAPI	KEYWORD1
 getListOfTimeZones	KEYWORD2

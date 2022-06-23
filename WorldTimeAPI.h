@@ -171,6 +171,11 @@ struct WorldTimeAPIResult {
 	*/
 	char abbreviation[WTAPI_TZ_ABR_NAME_SIZE];
 
+	/**
+	* @brief True if DST was applied when result was read.
+	*/
+	bool wasDST;
+
 #if (defined(ESP8266) || defined(ESP32)) && defined(ARDUINO)
 	/**
 	* @brief Client public IPv4 IP address. On ESP32 and ESP8266 with arduino core
@@ -217,6 +222,11 @@ struct WorldTimeAPIResult {
 	* @brief Clears result.
 	*/
 	void clear();
+
+	/**
+	* @brief Converts this result to tome zone informations.
+	*/
+	TimeZoneInfo toTimeZoneInfo() const;
 };
 
 

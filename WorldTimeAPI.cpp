@@ -44,6 +44,92 @@ void WorldTimeAPIResult::clear() {
 	datetime = DateTimeTZSysSync::Zero;
 	httpCode = WorldTimeAPI_HttpCode::WTA_HTTP_NO_CODE;
 	error = "";
+	wasDST = false;
+}
+
+
+
+TimeZoneInfo WorldTimeAPIResult::toTimeZoneInfo() const {
+	TimeZoneInfo ret;
+	ret.keyName = timezone;
+	ret.timeZone = datetime.getTimeZone();
+	ret.DST = datetime.getDST();
+	if (wasDST) {
+#if _MSC_VER && !__INTEL_COMPILER
+		//Specific code for MVSC
+		strncpy_s(ret.daylightABR, abbreviation, (sizeof(ret.daylightABR) / sizeof(char)) - 1);
+
+#else
+		strncpy(ret.daylightABR, abbreviation, (sizeof(ret.daylightABR) / sizeof(char)) - 1);
+#endif
+		ret.daylightABR[(sizeof(ret.daylightABR) / sizeof(char)) - 1] = 0; //Just be sure it is null terminated
+
+		//Trying to guess standard abbreviation
+		//CET -> CESR
+		//NZST -> NZDT
+		bool DS_found = false;
+		int len = (int)strnlen(abbreviation, (sizeof(ret.standardABR) / sizeof(char)) - 1);
+		bool isD = false;
+		ret.standardABR[len] = 0; //Null termination
+		--len;
+		if (len >= 2 && abbreviation[len] == 'T' && (isD = abbreviation[len - 1] == 'D' || abbreviation[len - 1] == 'S')) {
+			if (isD) {
+				//For example HDT found and will be set to HST
+				ret.standardABR[len] = abbreviation[len];
+				--len;
+				ret.standardABR[len] = 'S';
+				--len;
+			}
+			else {
+				//For example CEST found and will be set to CET
+				ret.standardABR[len] = abbreviation[len];
+				len -= 2;
+			}
+			for (int cnt = 0; len >= 0; len--, cnt++) {
+				//Just copy
+				ret.standardABR[len] = abbreviation[len];
+			}
+		}
+		else {
+			//Special
+			//GMT -> BST
+			//IST -> GMT
+			if (strncmp(abbreviation, "GMT", 4) == 0) {
+#if _MSC_VER && !__INTEL_COMPILER
+				//Specific code for MVSC
+				strncpy_s(ret.standardABR, "IST", (sizeof(ret.standardABR) / sizeof(char)) - 1);
+#else
+				strncpy(ret.standardABR, "IST", (sizeof(ret.standardABR) / sizeof(char)) - 1);
+#endif
+				ret.standardABR[(sizeof(ret.standardABR) / sizeof(char)) - 1] = 0; //Just be sure it is null terminated
+			}
+			else if (strncmp(abbreviation, "BST", 4) == 0) {
+#if _MSC_VER && !__INTEL_COMPILER
+				//Specific code for MVSC
+				strncpy_s(ret.standardABR, "GMT", (sizeof(ret.standardABR) / sizeof(char)) - 1);
+#else
+				strncpy(ret.standardABR, "GMT", (sizeof(ret.standardABR) / sizeof(char)) - 1);
+#endif
+				ret.standardABR[(sizeof(ret.standardABR) / sizeof(char)) - 1] = 0; //Just be sure it is null terminated
+			}
+			else {
+#if _MSC_VER && !__INTEL_COMPILER
+				//Specific code for MVSC
+				strncpy_s(ret.standardABR, abbreviation, (sizeof(ret.standardABR) / sizeof(char)) - 1);
+#else
+				strncpy(ret.standardABR, abbreviation, (sizeof(ret.standardABR) / sizeof(char)) - 1);
+#endif
+				ret.standardABR[(sizeof(ret.standardABR) / sizeof(char)) - 1] = 0; //Just be sure it is null terminated
+			}
+		}
+	}
+	//else {
+		//Cannot guess, because we don't know if DST is used from WorldTimeAPI now
+	//}
+
+	//TODO fill missing fields
+
+	return ret;
 }
 
 #ifdef ARDUINO
@@ -153,7 +239,7 @@ const WorldTimeAPIResult& WorldTimeAPI::getAndParseTZ(const char* url) {
 		else {
 			//Parsing OK
 			DSTAdjustment adj;
-			bool isDST = false;
+			lastRes.wasDST = false;
 			if (!resHelper.dst_null) {
 				//Creating fake DST adjustment - TODO
 				//TODO there may be problem at winter or at south hemisphere
@@ -166,12 +252,12 @@ const WorldTimeAPIResult& WorldTimeAPI::getAndParseTZ(const char* url) {
 				tmp = resHelper.dst_until.getDateStruct();
 				DSTTransitionRule endRule = DSTTransitionRule::Date(resHelper.dst_until.getHours(), tmp.month, tmp.day);
 
-				isDST = resHelper.dst;
-				adj = DSTAdjustment::fromTotalMinutesOffset(startRule, endRule, resHelper.dst_offset / 60, isDST);
+				lastRes.wasDST = resHelper.dst;
+				adj = DSTAdjustment::fromTotalMinutesOffset(startRule, endRule, resHelper.dst_offset / 60, lastRes.wasDST);
 			}
 
 			resHelper.unixtime += resHelper.tz.getTimeZoneOffset() + adj.getDSTOffset();
-			lastRes.datetime = DateTimeTZSysSync(resHelper.unixtime, resHelper.tz, adj, isDST);
+			lastRes.datetime = DateTimeTZSysSync(resHelper.unixtime, resHelper.tz, adj, lastRes.wasDST);
 		}
 	}
 	else if(lastRes.httpCode > WorldTimeAPI_HttpCode::WTA_HTTP_NO_CODE && response.length() > 0) {
